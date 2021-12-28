@@ -1,44 +1,35 @@
-import { ApolloServer, gql } from "apollo-server";
+import { ApolloServer } from "apollo-server";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
-import { quotes, users } from "./fakedb.js";
+import typeDefs from "./schemaGql.js";
 
-const typeDefs = gql`
-  type Query {
-    users: [User]
-    user(id: ID!): User
-    quotes: [Quote]
-    iquote(by: ID!): [Quote]
-  }
-  type User {
-    id: ID!
-    firstName: String
-    lastName: String
-    email: String
-    quotes: [Quote]
-  }
-  type Quote {
-    name: String
-    by: ID
-  }
-`;
+import mongoose from "mongoose";
+import { mongodb } from "./config.js";
 
-const resolvers = {
-  Query: {
-    users: () => users,
-    user: (_, { id }) => users.find((user) => user.id == id),
-    quotes: () => quotes,
-    iquote: (_, { by }) => quotes.filter((quote) => quote.by == by),
-  },
-  User: {
-    quotes: (ur) => quotes.filter((quote) => quote.by == ur.id),
-  },
-};
+mongoose.connect(mongodb, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+mongoose.connection.on("connected", () => {
+  console.log("connected to mongodb");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.log("error connecting", err);
+});
+
+//import models here
+import "./models/Quotes.js";
+import "./models/User.js";
+
+import resolvers from "./resolvers.js";
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
 });
+
 server.listen().then(({ url }) => {
-  console.log(`sever ${url}`);
+  console.log(`🚀  Server ready at ${url}`);
 });
