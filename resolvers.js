@@ -8,13 +8,13 @@ const Quote = mongoose.model("Quote");
 
 export const resolvers = {
   Query: {
-    users: () => users,
-    user: (_, { _id }) => users.find((user) => user._id == _id),
-    quotes: () => quotes,
-    iquote: (_, { by }) => quotes.filter((quote) => quote.by == by),
+    users: async () => await User.find({}),
+    user: async (_, { _id }) => await User.findOne({ _id }),
+    quotes: async () => await Quote.find({}).populate("by","_id firstName"),
+    iquote: async (_, { by }) => await Quote.find({ by }),
   },
   User: {
-    quotes: (ur) => quotes.filter((quote) => quote.by == ur.id),
+    quotes: async (ur) => await Quote.find({ by: ur._id }),
   },
   Mutation: {
     signupUser: async (_, { newUser }) => {
@@ -51,7 +51,7 @@ export const resolvers = {
         by: userId,
       });
       await newQuote.save();
-      return "Quote saved successfully"
+      return "Quote saved successfully";
     },
   },
 };
