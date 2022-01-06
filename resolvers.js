@@ -2,6 +2,7 @@ import { quotes, users } from "./fakedb.js";
 import mongoose from "mongoose";
 const User = mongoose.model("User");
 import bcryptjs from "bcryptjs";
+import jwt from "jsonwebtoken";
 export const resolvers = {
   Query: {
     users: () => users,
@@ -24,6 +25,21 @@ export const resolvers = {
         password: hashedPassword,
       });
       return await newUsers.save();
+    },
+    signinUser: async (_, { userSignin }) => {
+      const user = await User.findOne({ email: userSignin.email });
+      if (!user) {
+        throw new Error("user dosent exists with that email");
+      }
+      const doMatch = await bcryptjs.compare(
+        userSignin.password,
+        user.password
+      );
+      if (!doMatch) {
+        throw new Error("email or password in invalid");
+      }
+      const token = jwt.sign({ userId: user._id }, process.env.jwt);
+      return { token };
     },
   },
 };
