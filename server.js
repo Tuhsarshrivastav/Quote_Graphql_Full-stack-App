@@ -4,6 +4,7 @@ import typeDefs from './schemaGql.js'
 import dotenv from 'dotenv'
 dotenv.config()
 import mongoose from 'mongoose'
+import jwt from 'jsonwebtoken'
 
 mongoose.connect(process.env.db,{
   useNewUrlParser:true,
@@ -27,6 +28,13 @@ import {resolvers} from './resolvers.js'
 const server = new ApolloServer({
     typeDefs,
     resolvers,
+    context:({req})=>{
+     const {authorization}= req.headers
+     if(authorization){
+     const {userId}=  jwt.verify(authorization,process.env.jwt)
+     return {userId}
+     }
+    },
     plugins:[
         ApolloServerPluginLandingPageGraphQLPlayground
     ]

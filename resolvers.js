@@ -1,8 +1,11 @@
 import { quotes, users } from "./fakedb.js";
 import mongoose from "mongoose";
-const User = mongoose.model("User");
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
+
+const User = mongoose.model("User");
+const Quote = mongoose.model("Quote");
+
 export const resolvers = {
   Query: {
     users: () => users,
@@ -40,6 +43,15 @@ export const resolvers = {
       }
       const token = jwt.sign({ userId: user._id }, process.env.jwt);
       return { token };
+    },
+    createQuote: async (_, { name }, { userId }) => {
+      if (!userId) throw Error("You must be logged in");
+      const newQuote = new Quote({
+        name,
+        by: userId,
+      });
+      await newQuote.save();
+      return "Quote saved successfully"
     },
   },
 };
