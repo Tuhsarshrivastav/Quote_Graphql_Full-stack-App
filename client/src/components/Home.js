@@ -1,25 +1,24 @@
 import React from "react";
+import { useQuery } from "@apollo/client";
+import { GET_ALL_QUOTES } from "../gqloperations/queries";
 
-export default function Profile() {
+export default function Home() {
+  const { loading, error, data } = useQuery(GET_ALL_QUOTES);
+
+  if (loading) return <h1>Loading</h1>;
+  if (error) {
+    console.log(error.message);
+  }
   return (
-    <div className="container my-container">
-      <div className="center-align">
-        <img
-          className="circle"
-          style={{ border: "2px solid", marginTop: "10px" }}
-          src="https://robohash.org/ram.png?size=200x200"
-          alt="pic"
-        />
-        <h5>Ramesh verma</h5>
-        <h6>Email - abc@abc.com</h6>
-      </div>
-      <h3>Your quotes</h3>
-      <blockquote>
-        <h6>if it works dont touch it</h6>
-      </blockquote>
-      <blockquote>
-        <h6>if it works dont touch it</h6>
-      </blockquote>
+    <div className="container">
+      {data.quotes.map((quote) => {
+        return (
+          <blockquote>
+            <h6>{quote.name}</h6>
+            <p className="right-align">~{quote.by.firstName}</p>
+          </blockquote>
+        );
+      })}
     </div>
   );
 }
